@@ -51,7 +51,8 @@ class GUI:
 		self.HOST.set("localhost")
 		self.PORT.set("33000")
 		# login window
-		self.login = tkinter.Toplevel(width=470, height=200, takefocus=True)
+		self.login = tkinter.Toplevel(width=470, height=200, takefocus=True, bg="#17202A")
+
 		self.login.title("Login")
 		self.login.lift(aboveThis=self.Window)
 		self.login.focus_force()
@@ -61,6 +62,8 @@ class GUI:
 		self.pls = tkinter.Label(self.login,
 							text="Please login to continue",
 							justify='center',
+							bg="#17202A",
+							fg="#EAECEE",
 							font="Consolas 14 bold")
 
 		self.pls.place(relheight=0.15,
@@ -69,6 +72,8 @@ class GUI:
 		# create a Label
 		self.labelName = tkinter.Label(self.login,
 										text="Name: ",
+										bg="#17202A",
+										fg="#EAECEE",
 										font="Consolas 12")
 
 		self.labelName.place(relheight=0.2,
@@ -78,6 +83,8 @@ class GUI:
 		# create a entry box for
 		# tyoing the message
 		self.entryName = tkinter.Entry(self.login,
+										bg="#17202A",
+										fg="#EAECEE",
 										font="Consolas 14")
 
 		self.entryName.place(relwidth=0.4,
@@ -90,6 +97,8 @@ class GUI:
 
 		self.hostLabel = tkinter.Label(self.login,
 										text="Host: ",
+										bg="#17202A",
+										fg="#EAECEE",
 										font="Consolas 12")
 
 		self.hostLabel.place(relheight=0.2,
@@ -98,6 +107,8 @@ class GUI:
 
 		self.host = tkinter.Entry(self.login,
 									textvariable=self.HOST,
+									bg="#17202A",
+									fg="#EAECEE",
 									font="Consolas 14")
 
 		self.host.place(relwidth=0.4,
@@ -108,6 +119,8 @@ class GUI:
 
 		self.portLabel = tkinter.Label(self.login,
 										text="Port: ",
+										bg="#17202A",
+										fg="#EAECEE",
 										font="Consolas 12")
 
 		self.portLabel.place(relheight=0.2,
@@ -116,6 +129,8 @@ class GUI:
 
 		self.port = tkinter.Entry(self.login,
 									textvariable=self.PORT,
+									bg="#17202A",
+									fg="#EAECEE",
 									font="Consolas 14")
 		self.port.place(relwidth=0.4,
 						relheight=0.12,
@@ -127,6 +142,8 @@ class GUI:
 		self.go = tkinter.Button(self.login,
 							text="CONTINUE",
 							font="Consolas 14 bold",
+							bg="#17202A",
+							fg="#EAECEE",
                             command=lambda: self.goAhead(self.entryName.get()))
 		self.entryName.bind("<Return>", lambda : self.goAhead(
 			self.entryName.get()))
