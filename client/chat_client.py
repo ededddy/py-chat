@@ -5,6 +5,7 @@ from threading import Thread
 import tkinter
 from tkinter import font
 from tkinter import ttk
+from tkinter.filedialog import askopenfilename
 
 BUFSIZ = 1024
 
@@ -45,9 +46,16 @@ class GUI:
 		self.Window.configure(width=470,
 								height=550,
 								bg="#17202A")
+		self.HOST = tkinter.StringVar()
+		self.PORT = tkinter.StringVar()
+		self.HOST.set("localhost")
+		self.PORT.set("33000")
 		# login window
-		self.login = tkinter.Toplevel()
+		self.login = tkinter.Toplevel(width=470, height=200, takefocus=True)
 		self.login.title("Login")
+		self.login.lift(aboveThis=self.Window)
+		self.login.focus_force()
+		self.login.grab_set()
 		# set the title
 		# create a Label
 		self.pls = tkinter.Label(self.login,
@@ -89,12 +97,14 @@ class GUI:
 								rely=0.4)
 
 		self.host = tkinter.Entry(self.login,
+									textvariable=self.HOST,
 									font="Consolas 14")
 
 		self.host.place(relwidth=0.4,
 						relheight=0.12,
 						relx=0.35,
 						rely=0.4)
+
 
 		self.portLabel = tkinter.Label(self.login,
 										text="Port: ",
@@ -105,8 +115,8 @@ class GUI:
 								rely=0.6)
 
 		self.port = tkinter.Entry(self.login,
+									textvariable=self.PORT,
 									font="Consolas 14")
-
 		self.port.place(relwidth=0.4,
 						relheight=0.12,
 						relx=0.35,
@@ -117,28 +127,31 @@ class GUI:
 		self.go = tkinter.Button(self.login,
 							text="CONTINUE",
 							font="Consolas 14 bold",
-							command=lambda: self.goAhead(self.entryName.get(), self.host.get(), self.port.get()))
+                            command=lambda: self.goAhead(self.entryName.get()))
 		self.entryName.bind("<Return>", lambda : self.goAhead(
-			self.entryName.get(), self.host.get(), self.port.get()))
+			self.entryName.get()))
 		self.go.place(relx=0.4,
 						rely=0.8)
 		self.Window.mainloop()
 
-		
+	def selectFile(self):
+		self.file = askopenfilename()
+		# print(self.file)
+		self.my_msg.set(self.file)
 
-	def goAhead(self, name, host, port):
+	def goAhead(self, name):
+		self.login.grab_release()
 		self.login.destroy()
-
-		self.HOST = host; self.PORT = port
 
 		if not self.PORT:
 			self.PORT = 33000
 		else:
-			self.PORT = int(self.PORT)
+			self.PORT = int(self.PORT.get())
 
 		if not self.HOST:
 			self.HOST = 'localhost'
-
+		else:
+			self.HOST = str(self.HOST.get())
 
 		ADDR = (self.HOST, self.PORT)
 
@@ -148,10 +161,12 @@ class GUI:
 
 		rcv = Thread(target=self.receive)
 		rcv.start()
-		
 
 	def layout(self, name):
 		self.Window.title("py-chat")
+		self.Window.lift(aboveThis=self.Window)
+		self.Window.focus_force()
+		self.Window.grab_set()
 		self.messages_frame = tkinter.Frame(self.Window)
 		self.my_msg = tkinter.StringVar()  # For the messages to be sent.
 		self.my_msg.set(name)
@@ -193,19 +208,20 @@ class GUI:
 							relheight=0.06,
 							rely=0.008,
 							relx=0.011)
-		# send_button = tkinter.Button(self.Window, text="Send", command=send)
+		self.entry_field.focus()
 		self.send_button = tkinter.Button(
 			self.labelBottom, text="Send", font="Consolas 12 bold", width=20, bg="#abb2b9", command=self.send)
 
 		self.send_button.place(relx=0.77, rely=0.008,
-							relheight=0.06,  relwidth=0.22)
+							relheight=0.03,  relwidth=0.22)
+
+		self.file_button = tkinter.Button(
+			self.labelBottom, text="File", font="Consolas 12 bold", width=20, bg="#abb2b9", command=self.selectFile)
+
+		self.file_button.place(relx=0.77, rely=0.040,
+                         relheight=0.03,  relwidth=0.22)
 
 		self.Window.protocol("WM_DELETE_WINDOW", self.on_closing)
-
-# ----Now comes the sockets part----
-# HOST = input('Enter host: ')
-# PORT = input('Enter port: ')
-
 
 if __name__ == "__main__":
     g = GUI()
