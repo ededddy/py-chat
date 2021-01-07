@@ -7,19 +7,31 @@ from tkinter import font
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 
-BUFSIZ = 1024
+BUFSIZ = 1_000_000
+CONTENT_LIM = 999_991 
 
 class GUI:
 	def receive(self):
 		"""Handles receiving of messages."""
 		while True:
 			try:
-				msg = self.client_socket.recv(BUFSIZ).decode("utf8")
-				self.textCons.config(state='normal')
-				self.textCons.insert('end',
-                                    msg+"\n\n")
-				self.textCons.config(state='disabled')
-				self.textCons.see('end')
+				msg_b = self.client_socket.recv(BUFSIZ)
+				if(bytes("{file_done}", "utf8") in msg_b): 
+					self.recv_file_name = ""
+					print("File done")
+				elif(bytes("{content}", "utf8") in msg_b): 
+					with open(self.recv_file_name, "wb") as f:
+						f.write(msg_b[10:])
+						f.close()
+				elif(bytes("{fname}", "utf8") in msg_b): 
+					self.recv_file_name = msg_b.decode("utf8").split()[-1]
+					print(self.recv_file_name)
+				else: 
+					msg = msg_b.decode("utf8")
+					self.textCons.config(state='normal')
+					self.textCons.insert('end',msg+"\n\n")
+					self.textCons.config(state='disabled')
+					self.textCons.see('end')
 			except OSError:  # Possibly client has left the chat.
 				break
 
@@ -40,6 +52,8 @@ class GUI:
 		self.send()
 
 	def __init__(self):
+		self.file = None
+		self.recv_file_name = ""
 		self.Window = tkinter.Tk()
 		self.Window.resizable(width=False,
 								height=False)
@@ -153,8 +167,21 @@ class GUI:
 
 	def selectFile(self):
 		self.file = askopenfilename()
-		# print(self.file)
-		self.my_msg.set(self.file)
+		self.file_name = self.file.split("/")[-1]
+		self.client_socket.send(bytes("{file} " + self.file_name, "utf8"))
+		self.client_socket.send(bytes("{fname} " + self.file_name, "utf8"))
+		f =  open(self.file, "rb") 
+		while(True):
+			l = f.read(CONTENT_LIM)
+			self.client_socket.send(bytes("{content}", "utf8"))
+			while(l):
+				self.client_socket.send(l)
+				l = f.read(CONTENT_LIM)
+			if not l:
+				self.client_socket.send(bytes("{file_done}", "utf8"))
+				f.close()
+				break
+
 
 	def goAhead(self, name):
 		self.login.grab_release()

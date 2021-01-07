@@ -3,7 +3,6 @@
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 
-
 def accept_incoming_connections():
     """Sets up handling for incoming clients."""
     while True:
@@ -27,7 +26,17 @@ def handle_client(client):  # Takes client socket as argument.
     while True:
         msg = client.recv(BUFSIZ)
         if msg != bytes("{quit}", "utf8"):
-            broadcast(msg, name+": ")
+            # Handle file transferf8") in msg):
+            if(bytes("{file}","utf8") in msg):
+                file_name = msg.decode('utf8').split()[-1]
+                notif = "%s has shared file %s" % (name, file_name)
+                broadcast(bytes(notif, "utf8"))
+            elif(bytes("{content}", "utf8") in msg):
+                broadcast(msg)
+            elif(bytes("{fname}","utf8") in msg):
+                broadcast(msg)
+            else : 
+                broadcast(msg, name+": ")
         else:
             client.send(bytes("{quit}", "utf8"))
             client.close()
@@ -48,7 +57,7 @@ addresses = {}
 
 HOST = ''
 PORT = 33000
-BUFSIZ = 1024
+BUFSIZ = 1_000_000
 ADDR = (HOST, PORT)
 
 SERVER = socket(AF_INET, SOCK_STREAM)
