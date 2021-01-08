@@ -6,26 +6,38 @@ import tkinter
 from tkinter import font
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
+import os
 
 BUFSIZ = 1_000_000
-CONTENT_LIM = 999_991 
+CONTENT_LIM = BUFSIZ - 10
 
 class GUI:
+	def check_and_rename(self, file, add=0):
+		original_file = file
+		if add != 0 :
+			split = original_file.split(".")
+			part_1 = split[0] + "_" + str(add)
+			file=".".join([part_1, split[1]])
+		if not os.path.isfile(file):
+			self.recv_file_name = file
+		else:
+			self.check_and_rename(file, add+1)
+
 	def receive(self):
 		"""Handles receiving of messages."""
 		while True:
 			try:
 				msg_b = self.client_socket.recv(BUFSIZ)
-				if(bytes("{file_done}", "utf8") in msg_b): 
+				if(bytes("{fname}", "utf8") in msg_b[:7]): 
+					self.recv_file_name = msg_b.decode("utf8").split()[-1]
+					self.check_and_rename(self.recv_file_name)
+				elif(bytes("{file_done}", "utf8") in msg_b): 
 					self.recv_file_name = ""
 					print("File done")
-				elif(bytes("{content}", "utf8") in msg_b): 
+				elif(bytes("{content}", "utf8") in msg_b[:10]): 
 					with open(self.recv_file_name, "wb") as f:
 						f.write(msg_b[10:])
 						f.close()
-				elif(bytes("{fname}", "utf8") in msg_b): 
-					self.recv_file_name = msg_b.decode("utf8").split()[-1]
-					print(self.recv_file_name)
 				else: 
 					msg = msg_b.decode("utf8")
 					self.textCons.config(state='normal')
@@ -167,18 +179,18 @@ class GUI:
 
 	def selectFile(self):
 		self.file = askopenfilename()
+		if(not self.file):
+			return
 		self.file_name = self.file.split("/")[-1]
 		self.client_socket.send(bytes("{file} " + self.file_name, "utf8"))
-		self.client_socket.send(bytes("{fname} " + self.file_name, "utf8"))
 		f =  open(self.file, "rb") 
 		while(True):
 			l = f.read(CONTENT_LIM)
-			self.client_socket.send(bytes("{content}", "utf8"))
 			while(l):
-				self.client_socket.send(l)
+				self.client_socket.send(bytes("{content} ", "utf8") + l)
 				l = f.read(CONTENT_LIM)
 			if not l:
-				self.client_socket.send(bytes("{file_done}", "utf8"))
+				# self.client_socket.send(bytes("{file_done} ", "utf8"))
 				f.close()
 				break
 

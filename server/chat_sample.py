@@ -2,6 +2,7 @@
 """Server for multithreaded (asynchronous) chat application."""
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
+import time
 
 def accept_incoming_connections():
     """Sets up handling for incoming clients."""
@@ -31,10 +32,12 @@ def handle_client(client):  # Takes client socket as argument.
                 file_name = msg.decode('utf8').split()[-1]
                 notif = "%s has shared file %s" % (name, file_name)
                 broadcast(bytes(notif, "utf8"))
+                broadcast(bytes("{fname} %s" % file_name, "utf8"), skip=client)
+                time.sleep(0.5)
             elif(bytes("{content}", "utf8") in msg):
-                broadcast(msg)
-            elif(bytes("{fname}","utf8") in msg):
-                broadcast(msg)
+                broadcast(msg, skip=client)
+            elif(bytes("{file_done}","utf8") in msg):
+                broadcast(msg, skip=client)
             else : 
                 broadcast(msg, name+": ")
         else:
@@ -44,11 +47,11 @@ def handle_client(client):  # Takes client socket as argument.
             broadcast(bytes("%s has left the chat." % name, "utf8"))
             break
 
-
-def broadcast(msg, prefix=""):  # prefix is for name identification.
+def broadcast(msg, prefix="", skip=None):  # prefix is for name identification.
     """Broadcasts a message to all the clients."""
-
     for sock in clients:
+        if(sock == skip or sock is skip):
+            continue
         sock.send(bytes(prefix, "utf8")+msg)
 
         
