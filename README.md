@@ -19,7 +19,7 @@ Python 3.7
 
 
 ## TODOS
-[-] Handles client receiving file contents
-[-] Make clients stores the previous file name shared by others until finish transaction
-[] ISSUE : collision of file name on client side when share at the same time
-[-] ISSUE : self.recv_file_name not set (by sleeping server for 0.5 s)
+- [x] Handles client receiving file contents
+- [x] Make clients stores the previous file name shared by others until finish transaction
+- [] ISSUE : collision of file name on client side when share at the same time
+- [x] ISSUE : self.recv_file_name not set (by sleeping server for 0.5 s)
