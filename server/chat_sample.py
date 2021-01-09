@@ -32,12 +32,13 @@ def handle_client(client):  # Takes client socket as argument.
                 file_name = msg.decode('utf8').split()[-1]
                 notif = "%s has shared file %s" % (name, file_name)
                 broadcast(bytes(notif, "utf8"))
-                broadcast(bytes("{fname} %s" % file_name, "utf8"), skip=client)
-                time.sleep(0.5)
             elif(bytes("{content}", "utf8") in msg):
                 broadcast(msg, skip=client)
             elif(bytes("{file_done}","utf8") in msg):
                 broadcast(msg, skip=client)
+            elif(bytes("{fname}", "utf8") in msg):
+                broadcast(msg, skip=client)
+                time.sleep(0.1)
             else : 
                 broadcast(msg, name+": ")
         else:

@@ -7,6 +7,7 @@ from tkinter import font
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import os
+import time
 
 BUFSIZ = 1_000_000
 CONTENT_LIM = BUFSIZ - 10
@@ -17,9 +18,9 @@ class GUI:
 		if add != 0 :
 			split = original_file.split(".")
 			part_1 = split[0] + "_" + str(add)
-			file=".".join([part_1, split[1]])
-		if not os.path.isfile(file):
-			self.recv_file_name = file
+			original_file=".".join([part_1, split[1]])
+		if not os.path.isfile(original_file):
+			self.recv_file_name = original_file
 		else:
 			self.check_and_rename(file, add+1)
 
@@ -28,6 +29,7 @@ class GUI:
 		while True:
 			try:
 				msg_b = self.client_socket.recv(BUFSIZ)
+				print(msg_b)
 				if(bytes("{fname}", "utf8") in msg_b[:7]): 
 					self.recv_file_name = msg_b.decode("utf8").split()[-1]
 					self.check_and_rename(self.recv_file_name)
@@ -187,6 +189,7 @@ class GUI:
 		while(True):
 			l = f.read(CONTENT_LIM)
 			while(l):
+				self.client_socket.send(bytes("{fname} %s" % self.file_name, "utf8"))
 				self.client_socket.send(bytes("{content} ", "utf8") + l)
 				l = f.read(CONTENT_LIM)
 			if not l:
