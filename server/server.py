@@ -29,7 +29,7 @@ def handle_client(client):  # Takes client socket as argument.
         if msg != bytes("{quit}", "utf8"):
             # Handle file transferf8") in msg):
             if(bytes("{file}","utf8") in msg):
-                file_name = msg.decode('utf8').split()[-1]
+                file_name = msg.decode('utf8').split(None, 1)[-1]
                 notif = "%s has shared file %s" % (name, file_name)
                 broadcast(bytes(notif, "utf8"))
             elif(bytes("{content}", "utf8") in msg):

@@ -9,7 +9,7 @@ from tkinter.filedialog import askopenfilename
 import os
 import time
 
-BUFSIZ = 1_000_000
+BUFSIZ = int(1e7) 
 CONTENT_LIM = BUFSIZ - 10
 
 class GUI:
@@ -29,9 +29,9 @@ class GUI:
 		while True:
 			try:
 				msg_b = self.client_socket.recv(BUFSIZ)
-				print(msg_b)
+				# print(msg_b)
 				if(bytes("{fname}", "utf8") in msg_b[:7]): 
-					self.recv_file_name = msg_b.decode("utf8").split()[-1]
+					self.recv_file_name = msg_b.decode("utf8").split(None, 1)[-1]
 					self.check_and_rename(self.recv_file_name)
 				elif(bytes("{file_done}", "utf8") in msg_b): 
 					self.recv_file_name = ""
