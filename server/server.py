@@ -9,14 +9,12 @@ def accept_incoming_connections():
     while True:
         client, client_address = SERVER.accept()
         print("%s:%s has connected." % client_address)
-        # client.send(bytes("Greetings from the cave! Now type your name and press enter!", "utf8"))
         addresses[client] = client_address
         Thread(target=handle_client, args=(client,)).start()
 
 
 def handle_client(client):  # Takes client socket as argument.
     """Handles a single client connection."""
-
     name = client.recv(BUFSIZ).decode("utf8")
     welcome = 'Welcome %s! If you ever want to quit, type {quit} to exit.' % name
     client.send(bytes(welcome, "utf8"))
@@ -25,6 +23,7 @@ def handle_client(client):  # Takes client socket as argument.
     clients[client] = name
 
     while True:
+        """ Loop to decide how to forward packet"""
         msg = client.recv(BUFSIZ)
         if msg != bytes("{quit}", "utf8"):
             # Handle file transferf8") in msg):
@@ -38,10 +37,12 @@ def handle_client(client):  # Takes client socket as argument.
                 broadcast(msg, skip=client)
             elif(bytes("{fname}", "utf8") in msg):
                 broadcast(msg, skip=client)
+                # sleep to prevent this packet mixed with other packets due to speed
                 time.sleep(0.1)
             else : 
                 broadcast(msg, name+": ")
         else:
+            """ Handle user disconnecting"""
             client.send(bytes("{quit}", "utf8"))
             client.close()
             del clients[client]
@@ -49,7 +50,11 @@ def handle_client(client):  # Takes client socket as argument.
             break
 
 def broadcast(msg, prefix="", skip=None):  # prefix is for name identification.
-    """Broadcasts a message to all the clients."""
+    """
+    Broadcasts a message to clients.
+    prefix : string for name identification
+    skip : socket instance for skipping forwarding to specific client 
+    """
     for sock in clients:
         if(sock == skip or sock is skip):
             continue
@@ -61,13 +66,14 @@ addresses = {}
 
 HOST = ''
 PORT = 33000
-BUFSIZ = 1_000_000
+BUFSIZ = int(1e7) + 10
 ADDR = (HOST, PORT)
 
 SERVER = socket(AF_INET, SOCK_STREAM)
 SERVER.bind(ADDR)
 
 if __name__ == "__main__":
+    """spawn threads for sockets """
     SERVER.listen(5)
     print("Waiting for connection...")
     ACCEPT_THREAD = Thread(target=accept_incoming_connections)

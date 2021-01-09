@@ -5,15 +5,17 @@ from threading import Thread
 import tkinter
 from tkinter import font
 from tkinter import ttk
+from tkinter import messagebox
 from tkinter.filedialog import askopenfilename
 import os
 import time
 
-BUFSIZ = int(1e7) 
+BUFSIZ = int(1e7) + 10 
 CONTENT_LIM = BUFSIZ - 10
 
 class GUI:
 	def check_and_rename(self, file, add=0):
+		"""method to check if a file exsists or not"""
 		original_file = file
 		if add != 0 :
 			split = original_file.split(".")
@@ -25,22 +27,26 @@ class GUI:
 			self.check_and_rename(file, add+1)
 
 	def receive(self):
-		"""Handles receiving of messages."""
+		"""Handles receiving of bytes base on header"""
 		while True:
 			try:
 				msg_b = self.client_socket.recv(BUFSIZ)
 				# print(msg_b)
 				if(bytes("{fname}", "utf8") in msg_b[:7]): 
+					"""set the received file name"""
 					self.recv_file_name = msg_b.decode("utf8").split(None, 1)[-1]
 					self.check_and_rename(self.recv_file_name)
 				elif(bytes("{file_done}", "utf8") in msg_b): 
+					"""reset the received file name"""
 					self.recv_file_name = ""
 					print("File done")
 				elif(bytes("{content}", "utf8") in msg_b[:10]): 
+					"""write bytes to a file"""
 					with open(self.recv_file_name, "wb") as f:
 						f.write(msg_b[10:])
 						f.close()
 				else: 
+					"""If no header then default as message"""
 					msg = msg_b.decode("utf8")
 					self.textCons.config(state='normal')
 					self.textCons.insert('end',msg+"\n\n")
@@ -66,6 +72,10 @@ class GUI:
 		self.send()
 
 	def __init__(self):
+		"""
+		GUI instance init
+		Creates a tkinter root and prompt for login info
+		"""
 		self.file = None
 		self.recv_file_name = ""
 		self.Window = tkinter.Tk()
@@ -172,7 +182,7 @@ class GUI:
 							font="Consolas 14 bold",
 							bg="#17202A",
 							fg="#EAECEE",
-                            command=lambda: self.goAhead(self.entryName.get()))
+              command=lambda: self.goAhead(self.entryName.get()))
 		self.entryName.bind("<Return>", lambda : self.goAhead(
 			self.entryName.get()))
 		self.go.place(relx=0.4,
@@ -180,8 +190,13 @@ class GUI:
 		self.Window.mainloop()
 
 	def selectFile(self):
+		"""Handler for selecting and sending file"""
 		self.file = askopenfilename()
 		if(not self.file):
+			return
+		if(os.path.getsize(self.file) > CONTENT_LIM):
+			self.file=None
+			messagebox.showerror(title="ERROR", message="File is too larger (>10 MB)")
 			return
 		self.file_name = self.file.split("/")[-1]
 		self.client_socket.send(bytes("{file} " + self.file_name, "utf8"))
@@ -199,6 +214,8 @@ class GUI:
 
 
 	def goAhead(self, name):
+		"""Intermediate function for connecting to chat room"""
+		# Destroy the login prompt
 		self.login.grab_release()
 		self.login.destroy()
 
@@ -222,6 +239,7 @@ class GUI:
 		rcv.start()
 
 	def layout(self, name):
+		""" GUI logic for main window for chatting"""
 		self.Window.title("py-chat")
 		self.Window.lift(aboveThis=self.Window)
 		self.Window.focus_force()
